@@ -1,14 +1,24 @@
-/**
- * js 模块化开发
- */
-fis.hook('amd', {
-	
-})
 
+fis.hook('amd');
 
-fis.match('::packager', {
-	spriter : fis.plugin('csssprites')
+fis.match('/lib/js/(*).js', {
+    optimizer : fis.plugin('uglify-js'),
+    release : '/Public/js/$1'
 });
+
+fis.match('/lib/js/modules/(*).js', {
+    isMod: true, // 设置 comp 下都是一些组件，组件建议都是匿名方式 define
+    release: '/Public/js/modules/$1'
+});
+
+fis.match('::package', {
+    spriter : fis.plugin('csssprites'),
+    // 分析 __RESOURCE_MAP__ 结构，来解决资源加载问题
+    postpackager: fis.plugin('loader', {
+        resourceType: 'amd',
+        useInlineMap: true // 资源映射表内嵌
+    })
+})
 
 /**
  * sass的解析  
@@ -16,40 +26,25 @@ fis.match('::packager', {
  * 分通用功能common.sass与具体功能样式
  */
 fis.match('/lib/css/(*).scss', {
-	rExt : '.css',
-	parser : fis.plugin('sass'), //加载sass插件
-	useSprite : true, //使用雪碧图
-	optimizer: fis.plugin('clean-css'), //压缩css
-	release : '/Public/css/$1'
+    rExt : '.css',
+    parser : fis.plugin('sass'), //加载sass插件
+    useSprite : true, //使用雪碧图
+    optimizer: fis.plugin('clean-css'), //压缩css
+    release : '/Public/css/$1'
 })
-
-/**
- * js的解析
- * 直接进行压缩
- */
-fis.match('/lib/js/(*).js', {
-	// optimizer : fis.plugin('uglify-js'),
-	release : '/Public/js/$1'
-});
-fis.match('/lib/js/modules/(*).js', {
-    isMod: true, // 设置 comp 下都是一些组件，组件建议都是匿名方式 define
-    // release: '/Public/js/modules/$1'
-});
-
-
-
 
 /**
  * 图片的解析，发布
  * 包括css中压缩出现的图片
  */
 fis.match(/^\/lib\/(css|images)\/(.*)\.(jpg|gig|jpeg|png)$/, {
-	optimizer : fis.plugin('png-compressor'),
-	release: '/Public/images/$2'
+    optimizer : fis.plugin('png-compressor'),
+    release: '/Public/images/$2'
 })
 
-// fis.media('debug').match('**/**.{js,css,png}', {
-// 	useHash : false,
-// 	useSprite : false,
-// 	optimizer : null
-// })
+// fis3 release prod 产品发布，进行合并
+fis.media('prod')
+    .match('/lib/js/modules/**.js', {
+        optimizer : fis.plugin('uglify-js'),
+        packTo: '/Public/js/main.js'
+    });
