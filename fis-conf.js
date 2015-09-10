@@ -19,6 +19,9 @@ fis.match('/lib/css/(*).scss', {
 
 /**
  * 合并多个css 并发布合并后的css
+ * 采用开发时候，直接使用sass 的import 进行引用 ，不后期进行打包
+ * 分通用功能common.sass与具体功能样式
+ * 
  */
 fis.match('/lib/css/(*).scss', {
 	packTo : '/Public/css/output/pak.css',
